@@ -430,6 +430,11 @@ foreach ($folhas as $index => $f) {
 
     $irt = calcIrt($irtBase);
 
+    // 'discounts' aqui já é só o valor manual (ver save_payroll.php, Fase 0).
+    // Antes da correção, esta coluna guardava o TOTAL (manual + faltas + INSS + IRT),
+    // e este ficheiro somava tudo outra vez abaixo — ou seja, duplicava faltas/INSS/IRT
+    // no total de descontos. Nenhuma alteração de lógica é necessária aqui além
+    // deste comentário: o bug foi corrigido na origem, na gravação da folha.
     $otherDiscounts = (float)($f['discounts'] ?? 0);
 
     $discounts =

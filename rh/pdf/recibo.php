@@ -14,6 +14,14 @@ if (!$id) {
     die('Parâmetros inválidos.');
 }
 
+// Nunca continuar sem company_id na sessão: sem isto, o filtro abaixo
+// deixava de ser aplicado e qualquer pessoa autenticada em qualquer empresa
+// conseguia ver o recibo de outra empresa só sabendo o ID.
+if (empty($company_id)) {
+    http_response_code(401);
+    die('Sessão expirada ou inválida. Por favor, faça login novamente.');
+}
+
 /*
 |--------------------------------------------------------------------------
 | BUSCAR DADOS
@@ -37,12 +45,8 @@ JOIN companies comp ON comp.id = p.company_id
 WHERE p.id = ?
 ";
 
-$params = [$id];
-
-if (!empty($company_id)) {
-    $sql .= " AND p.company_id = ?";
-    $params[] = $company_id;
-}
+$params = [$id, $company_id];
+$sql .= " AND p.company_id = ?";
 
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
@@ -95,7 +99,9 @@ $base  = (float)$dados['base_salary'];
 $inss = (float)($dados['inss_value'] ?? 0);
 $irt  = (float)($dados['irt_value'] ?? 0);
 
-$discountsTotal = (float)($dados['discounts'] ?? 0);
+// total_discounts = manual + faltas + INSS + IRT (ver save_payroll.php).
+// Fallback para 'discounts' cobre folhas gravadas antes da migração da Fase 0.
+$discountsTotal = (float)($dados['total_discounts'] ?? $dados['discounts'] ?? 0);
 
 $otherDiscounts = max(
     0,

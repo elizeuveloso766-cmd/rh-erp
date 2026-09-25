@@ -79,6 +79,19 @@ if (!is_dir($uploadDocDir)) {
 |--------------------------------------------------------------------------
 */
 
+// Extensão -> lista de MIME types reais aceites para essa extensão.
+// A extensão sozinha é só o que está escrito no nome do ficheiro; quem faz
+// upload pode renomear qualquer ficheiro para .jpg. finfo_file() lê a
+// assinatura real do ficheiro no disco, que é o que importa para segurança.
+const RH_ALLOWED_MIME_BY_EXT = [
+    'png'  => ['image/png'],
+    'jpg'  => ['image/jpeg'],
+    'jpeg' => ['image/jpeg'],
+    'webp' => ['image/webp'],
+    'gif'  => ['image/gif'],
+    'pdf'  => ['application/pdf'],
+];
+
 function saveUpload($fileKey, $destDir, array $allowedExts)
 {
     if (
@@ -95,6 +108,18 @@ function saveUpload($fileKey, $destDir, array $allowedExts)
 
     if (!in_array($ext, $allowedExts, true)) {
         throw new Exception("Formato inválido para {$fileKey}");
+    }
+
+    // Valida o MIME real do ficheiro (não apenas a extensão do nome).
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $realMime = $finfo ? finfo_file($finfo, $tmp) : false;
+    if ($finfo) {
+        finfo_close($finfo);
+    }
+
+    $expectedMimes = RH_ALLOWED_MIME_BY_EXT[$ext] ?? [];
+    if (!$realMime || !in_array($realMime, $expectedMimes, true)) {
+        throw new Exception("O ficheiro enviado para {$fileKey} não corresponde a um {$ext} válido.");
     }
 
     $fileName = uniqid($fileKey . '_', true) . '.' . $ext;

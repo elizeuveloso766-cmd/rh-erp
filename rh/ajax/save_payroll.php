@@ -86,10 +86,15 @@ $total_descontos = $manual_discounts + $valor_faltas + $inss_value + $irt_value;
 // Salário líquido = bruto - descontos
 $net_salary = $gross_salary - $total_descontos;
 
-// Inserir ou atualizar
+// IMPORTANTE: `discounts` guarda APENAS o valor manual digitado pelo utilizador
+// (o que ele preenche no formulário). `total_discounts` guarda o total calculado
+// (manual + faltas + INSS + IRT), usado nos relatórios/recibo/exportações.
+// Antes, `discounts` guardava o total, e ao reabrir a folha para editar o
+// formulário recarregava esse total como se fosse o valor manual, inflacionando
+// os descontos a cada edição.
 if ($id) {
     $stmt = $pdo->prepare("UPDATE payroll 
-        SET reference_month = ?, base_salary = ?, bonuses = ?, food_allowance = ?, transport_allowance = ?, vacation_subsidy_pct = ?, thirteenth_subsidy_pct = ?, commissions = ?, sales = ?, discounts = ?, inss_value = ?, irt_value = ?, net_salary = ?, payment_date = ?, status = ? 
+        SET reference_month = ?, base_salary = ?, bonuses = ?, food_allowance = ?, transport_allowance = ?, vacation_subsidy_pct = ?, thirteenth_subsidy_pct = ?, commissions = ?, sales = ?, discounts = ?, total_discounts = ?, inss_value = ?, irt_value = ?, net_salary = ?, payment_date = ?, status = ? 
         WHERE id = ? AND company_id = ?");
     $stmt->execute([
         $reference_month,
@@ -101,6 +106,7 @@ if ($id) {
         $thirteenth_subsidy_pct,
         $commissions,
         $sales,
+        $manual_discounts,
         $total_descontos,
         $inss_value,
         $irt_value,
@@ -112,8 +118,8 @@ if ($id) {
     ]);
 } else {
     $stmt = $pdo->prepare("INSERT INTO payroll 
-        (employee_id, company_id, reference_month, base_salary, bonuses, food_allowance, transport_allowance, vacation_subsidy_pct, thirteenth_subsidy_pct, commissions, sales, discounts, inss_value, irt_value, net_salary, payment_date, status) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        (employee_id, company_id, reference_month, base_salary, bonuses, food_allowance, transport_allowance, vacation_subsidy_pct, thirteenth_subsidy_pct, commissions, sales, discounts, total_discounts, inss_value, irt_value, net_salary, payment_date, status) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
     $stmt->execute([
         $employee_id,
         $company_id,
@@ -126,6 +132,7 @@ if ($id) {
         $thirteenth_subsidy_pct,
         $commissions,
         $sales,
+        $manual_discounts,
         $total_descontos,
         $inss_value,
         $irt_value,

@@ -390,8 +390,10 @@ require_once '../app/views/layout_creation.php';
                     }
                 },
                 {
-                    data: 'discounts',
-                    render: data => `Kz ${parseFloat(data).toLocaleString('pt-AO', { minimumFractionDigits: 2 })}`
+                    // Coluna da listagem mostra o TOTAL de descontos (manual + faltas + INSS + IRT).
+                    // O campo `discounts` isolado (só o valor manual) é usado no formulário de edição.
+                    data: 'total_discounts',
+                    render: data => `Kz ${parseFloat(data || 0).toLocaleString('pt-AO', { minimumFractionDigits: 2 })}`
                 },
                 {
                     data: 'net_salary',
@@ -509,6 +511,7 @@ require_once '../app/views/layout_creation.php';
             $('#formPayroll select[name=thirteenth_subsidy_pct]').val(row.thirteenth_subsidy_pct);
             $('#formPayroll input[name=commissions]').val(row.commissions);
             $('#formPayroll input[name=sales]').val(row.sales);
+            // row.discounts agora é só o valor manual (não o total) — é o que se edita aqui.
             $('#formPayroll input[name=discounts]').val(row.discounts);
             $('#formPayroll input[name=payment_date]').val(row.payment_date);
             $('#formPayroll select[name=status]').val(row.status);

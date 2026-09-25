@@ -191,7 +191,9 @@ foreach ($dados as $linha) {
 
     $baseSalary = (float)$linha['base_salary'];
     $bonus      = (float)$linha['bonuses'];
-    $discounts  = (float)$linha['discounts'];
+    // total_discounts = manual + faltas + INSS + IRT (ver save_payroll.php).
+    // Fallback para 'discounts' cobre folhas gravadas antes da migração da Fase 0.
+    $discounts  = (float)($linha['total_discounts'] ?? $linha['discounts']);
     $netSalary  = (float)$linha['net_salary'];
 
     $sheet->fromArray([

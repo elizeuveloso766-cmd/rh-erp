@@ -27,6 +27,10 @@ try {
         throw new Exception('As datas de início e fim são obrigatórias.');
     }
 
+    if (strtotime($end_date) < strtotime($start_date)) {
+        throw new Exception('A data de fim não pode ser anterior à data de início.');
+    }
+
     if ($id) {
         // Update
         if (!$employee_id) {

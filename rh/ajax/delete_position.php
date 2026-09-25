@@ -11,8 +11,11 @@ if (!$company_id || !$id) {
     exit;
 }
 
-// Impede deletar se estiver em uso por algum funcionário
-$stmt = $pdo->prepare('SELECT COUNT(*) FROM employees WHERE company_id = ? AND position = (SELECT name FROM positions WHERE id = ? AND company_id = ?)');
+// Impede deletar se estiver em uso por algum funcionário.
+// TRIM() dos dois lados: o mesmo problema de espaços do search_employees.php
+// (Fase 0) também se aplica aqui — sem isto, um cargo com nome "sujo" podia
+// ser apagado mesmo tendo funcionários vinculados.
+$stmt = $pdo->prepare('SELECT COUNT(*) FROM employees WHERE company_id = ? AND TRIM(position) = (SELECT TRIM(name) FROM positions WHERE id = ? AND company_id = ?)');
 $stmt->execute([$company_id, $id, $company_id]);
 $inUse = (int)$stmt->fetchColumn();
 if ($inUse > 0) {
